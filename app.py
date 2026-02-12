@@ -23,6 +23,8 @@ def home():
 #login page route
 @app.route("/login", methods=["GET","POST"])
 def login():
+    message = request.args.get("msg")
+
     if request.method == "POST":
         email=request.form["email"]
         password=request.form["password"]
@@ -39,7 +41,26 @@ def login():
         else:
             return "Invalid email or password"
         
-    return render_template("login.html")
+    return render_template("login.html",message=message)
+
+#Add register route
+@app.route("/register", methods=["GET","POST"])
+def register():
+    if request.method == "POST":
+        name = request.form["name"]
+        email = request.form["email"]
+        password = request.form["password"]
+
+        cursor.execute(
+            "INSERT INTO users (name, email, password) VALUES (%s,%s,%s)",
+            (name, email, password)
+        )
+        db.commit()
+
+        return redirect(url_for("login", msg="Registerd!"))
+
+    return render_template("register.html")
+
 
 #Dashboard route add
 @app.route("/dashboard")
