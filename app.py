@@ -1,5 +1,5 @@
 import mysql.connector
-
+from datetime import date
 from flask import Flask, render_template, request,redirect,url_for, session
 
 app = Flask(__name__)
@@ -64,6 +64,7 @@ def register():
 
 #Dashboard route add
 @app.route("/dashboard")
+
 def dashboard():
     if "user" in session:
         return render_template("dashboard.html", username=session["user"])
@@ -71,8 +72,26 @@ def dashboard():
     else:
         return redirect(url_for("login"))
     
+    
+# Mark attendance
+@app.route("/mark_attendance", methods=["POST"])
+def mark_attendance():
+    if "user" in session:
+        today = date.today()
+        name = session["user"]
 
-#Logout route add
+        cursor.execute(
+            "INSERT INTO attendance (student_name, date, status) VALUES (%s,%s,%s)",
+            (name, today, "Present")
+        )
+        db.commit()
+
+        return "Attendance marked successfully"
+    else:
+        return redirect(url_for("login"))
+ 
+
+    #Logout route add
 @app.route("/logout")
 def logout():
     session.pop("user", None)
