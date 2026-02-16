@@ -37,6 +37,7 @@ def login():
 
         if user:
             session["user"]=user[1]
+            session["user_id"] = user[0]   # store id
             return redirect(url_for("dashboard"))
         else:
             return "Invalid email or password"
@@ -66,30 +67,39 @@ def register():
 @app.route("/dashboard")
 
 def dashboard():
-    if "user" in session:
-        return render_template("dashboard.html", username=session["user"])
-
-    else:
+    if "user" not in session:
         return redirect(url_for("login"))
+    
+    cursor.execute("SELECT * FROM students")
+    students = cursor.fetchall()
+
+    return render_template(
+        "dashboard.html",
+        username=session["user"],
+        students=students
+    )
     
     
 # Mark attendance
 @app.route("/mark_attendance", methods=["POST"])
 def mark_attendance():
-    if "user" in session:
-        today = date.today()
-        name = session["user"]
-
-        cursor.execute(
-            "INSERT INTO attendance (student_name, date, status) VALUES (%s,%s,%s)",
-            (name, today, "Present")
-        )
-        db.commit()
-
-        return "Attendance marked successfully"
-    else:
+    if "user" not in session:
         return redirect(url_for("login"))
- 
+
+    today = date.today()
+    faculty_id = session["user_id"]
+
+    present_students = request.form.getlist("present")
+
+    for student_id in present_students:
+        cursor.execute(
+            "INSERT INTO attendance (student_id, date, status, marked_by) VALUES (%s,%s,%s,%s)",
+            (student_id, today, "Present", faculty_id)
+        )
+    db.commit()
+
+    return "Attendance submmited"
+
 
     #Logout route add
 @app.route("/logout")

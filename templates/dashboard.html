@@ -6,17 +6,24 @@
 <body>
 
     <h2>Welcome {{ username }}</h2>
+    <h3>Mark Today's Attendance</h3>
     
     <form method="POST" action="/mark_attendance">
-    <button type="submit">Mark Today's Attendance</button>
+
+        {% for student in students %}
+        <p>
+            {{ student[1] }}
+            <input type="checkbox" name="present" value="{{ student[0] }}">
+        </p>
+    {% endfor %}
+
+    <button type="submit">Submmit Attendance</button>
 </form>
 
 <a href="/view_attendance">View Attendance</a>
 <br><br>
 <a href="/logout">Logout</a>
 
-
-    <p>You are logged in successfully.</p>
 
     <a href="/logout">Logout</a>
 
