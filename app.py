@@ -98,19 +98,25 @@ def mark_attendance():
                 status = "Present"
             else:
                 status = "Absent"
+            # Insert OR Update if already exists
+            cursor.execute("""
+            INSERT INTO attendance (student_id, date, status)
+            VALUES (%s, %s, %s)
+            ON DUPLICATE KEY UPDATE status = %s
+        """, (student_id, today, status, status))
+ 
 
-            cursor.execute(
-                "INSERT INTO attendance (student_id, date, status) VALUES (%s,%s,%s)",
-                (student_id, today, status)
-            )
+            
+                
 
     db.commit()
+
 
     return redirect(url_for("dashboard"))
 
     
 
-    #Logout route add
+#Logout route add
 @app.route("/logout")
 def logout():
     session.pop("user", None)
