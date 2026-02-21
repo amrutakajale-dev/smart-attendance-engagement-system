@@ -41,7 +41,7 @@ def login():
             return redirect(url_for("dashboard"))
         else:
             return "Invalid email or password"
-        
+
     return render_template("login.html",message=message)
 
 #Add register route
@@ -67,19 +67,16 @@ def register():
 @app.route("/dashboard")
 
 def dashboard():
-    if "user" not in session:
-        return redirect(url_for("login"))
-    
-    cursor.execute("SELECT * FROM students")
-    students = cursor.fetchall()
+     if "user" in session:
+        cursor.execute("SELECT id, name FROM students")
+        students = cursor.fetchall()
 
-    return render_template(
-        "dashboard.html",
-        username=session["user"],
-        students=students
-    )
+        return render_template("dashboard.html",
+                               username=session["user"],
+                               students=students)
+     return redirect(url_for("login"))
     
-    
+
 # Mark attendance
 @app.route("/mark_attendance", methods=["POST"])
 def mark_attendance():
@@ -87,19 +84,31 @@ def mark_attendance():
         return redirect(url_for("login"))
 
     today = date.today()
-    faculty_id = session["user_id"]
 
-    present_students = request.form.getlist("present")
+    present_students = request.form.getlist("students")
 
-    for student_id in present_students:
-        cursor.execute(
-            "INSERT INTO attendance (student_id, date, status, marked_by) VALUES (%s,%s,%s,%s)",
-            (student_id, today, "Present", faculty_id)
-        )
+        #remove all students from DB
+    cursor.execute("SELECT id FROM students")
+    all_students = cursor.fetchall()
+
+    for student in all_students:
+            student_id = student[0]
+
+            if str(student_id) in present_students:
+                status = "Present"
+            else:
+                status = "Absent"
+
+            cursor.execute(
+                "INSERT INTO attendance (student_id, date, status) VALUES (%s,%s,%s)",
+                (student_id, today, status)
+            )
+
     db.commit()
 
-    return "Attendance submmited"
+    return redirect(url_for("dashboard"))
 
+    
 
     #Logout route add
 @app.route("/logout")
