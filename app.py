@@ -114,7 +114,25 @@ def mark_attendance():
 
     return redirect(url_for("dashboard"))
 
-    
+
+#view attendance route
+@app.route("/view_attendance")
+def view_attendance():
+
+    if "user" not in session:
+        return redirect(url_for("login"))
+
+    cursor.execute("""
+        SELECT students.name, attendance.date, attendance.status
+        FROM attendance
+        INNER JOIN students
+        ON attendance.student_id = students.id
+        ORDER BY attendance.date DESC
+    """)
+
+    records = cursor.fetchall()
+
+    return render_template("view_attendance.html", records=records)   
 
 #Logout route add
 @app.route("/logout")
