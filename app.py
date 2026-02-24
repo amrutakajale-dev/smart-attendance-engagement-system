@@ -116,13 +116,25 @@ def mark_attendance():
 
 
 #view attendance route
-@app.route("/view_attendance")
+@app.route("/view_attendance", methods=["GET"])
 def view_attendance():
 
     if "user" not in session:
         return redirect(url_for("login"))
+    
+    selected_date = request.args.get("date")
 
-    cursor.execute("""
+    if selected_date:
+        cursor.execute("""
+            SELECT students.name, attendance.date, attendance.status
+            FROM attendance
+            INNER JOIN students
+            ON attendance.student_id = students.id
+            WHERE attendance.date = %s
+            ORDER BY students.name
+        """, (selected_date,))
+    else:
+        cursor.execute("""
         SELECT students.name, attendance.date, attendance.status
         FROM attendance
         INNER JOIN students
@@ -132,7 +144,11 @@ def view_attendance():
 
     records = cursor.fetchall()
 
-    return render_template("view_attendance.html", records=records)   
+    return render_template(
+    "view_attendance.html", 
+    records=records,
+    selected_date=selected_date
+    )   
 
 #Logout route add
 @app.route("/logout")
