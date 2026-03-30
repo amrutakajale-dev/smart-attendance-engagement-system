@@ -148,7 +148,40 @@ def view_attendance():
     "view_attendance.html", 
     records=records,
     selected_date=selected_date
-    )   
+    )  
+
+ 
+@app.route("/attendance_summary")
+def attendance_summary():
+
+    if "user" not in session:
+        return redirect(url_for("login"))
+
+    cursor.execute("""
+        SELECT students.name,
+               COUNT(attendance.id) AS total_classes,
+               SUM(attendance.status = 'Present') AS present_count
+        FROM attendance
+        INNER JOIN students
+        ON attendance.student_id = students.id
+        GROUP BY students.id
+    """)
+
+    data = cursor.fetchall()
+
+    # calculate percentage
+    result = []
+    for row in data:
+        name = row[0]
+        total = row[1]
+        present = row[2]
+
+        percentage = (present / total) * 100 if total > 0 else 0
+
+        result.append((name, total, present, round(percentage, 2)))
+
+    return render_template("attendance_summary.html", data=result)
+
 
 #Logout route add
 @app.route("/logout")
