@@ -86,7 +86,7 @@ def mark_attendance():
     today = date.today()
 
     present_students = request.form.getlist("students")
-
+    marked_by = session["user_id"]
         #remove all students from DB
     cursor.execute("SELECT id FROM students")
     all_students = cursor.fetchall()
@@ -100,15 +100,13 @@ def mark_attendance():
                 status = "Absent"
             # Insert OR Update if already exists
             cursor.execute("""
-            INSERT INTO attendance (student_id, date, status)
-            VALUES (%s, %s, %s)
-            ON DUPLICATE KEY UPDATE status = %s
-        """, (student_id, today, status, status))
+            INSERT INTO attendance (student_id, date, status, marked_by)
+            VALUES (%s, %s, %s, %s)
+            
+        """, (student_id, today, status, marked_by))
  
 
             
-                
-
     db.commit()
 
 
